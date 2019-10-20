@@ -1,0 +1,17 @@
+{
+  "name": "breeds-api",
+  "version": "1.0.0",
+  "description": "The breeds API",
+  "scripts": {
+    "start": "json-server dogs-list.json"
+  },
+  "keywords": [
+    "workshops",
+    "canariasjs"
+  ],
+  "author": "wanxe",
+  "license": "ISC",
+  "dependencies": {
+    "json-server": "^0.15.1"
+  }
+}

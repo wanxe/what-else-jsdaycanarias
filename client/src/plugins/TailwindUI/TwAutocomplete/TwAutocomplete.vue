@@ -1,20 +1,19 @@
 <template>
   <div
     class="tw-dropdown w-full max-w-screen-xl mx-auto relative focus:outline-none"
-    @blur="deactivate"
     @keyup.self.esc="closeDropdown"
     @keydown.self.down.prevent="onInputKeyDown"
     @keydown.self.up.prevent="onInputKeyUp"
     @keypress.enter.prevent.stop.self="onInputKeyEnter"
-    tabindex="0"
+    :tabindex="tabindex"
   >
     <tw-input
       v-model="inputValue"
       ref="search"
       type="search"
       class="mb-4"
-      tabindex="1"
-      @blur="deactivate"
+      :tabindex="tabindex + 1"
+      @blur.self="onInputBlur"
       @search="onNativeSearchEvent"
       @focus.self="activate"
       @keyup.self.esc="closeDropdown"
@@ -54,7 +53,12 @@
             v-for="(item, index) in computedItems"
             :key="item"
             :class="{ 'is-selected': cursor === index }"
+            :tabindex="(index + 1) + (tabindex + 2)"
+            class="focus:outline-none"
+            @focus="setCursorIndexFromDropdownItem($event, index)"
+            @blur="onBlurDropdownItem($event)"
             @click="selectItem(item)"
+            @keypress.enter.prevent.stop.self="onInputKeyEnter"
           >
             <slot
               name="result"
@@ -88,6 +92,10 @@ export default {
     TwInput
   },
   props: {
+    tabindex: {
+      type: Number,
+      default: 0
+    },
     placeholder: {
       type: String,
       default: 'Search...'
@@ -149,12 +157,12 @@ export default {
   },
   methods: {
     activate () {
+      this.isFocused = true;
       if (this.isDropdownOpened || this.disabled) return;
       // Waits until the component is fully rendered into the DOM and
       // hooks into the native wrapped input element
       this.$nextTick(() => this.$refs.search && this.$refs.search.$refs.input.focus());
       this.isDropdownOpened = true;
-      this.isFocused = true;
     },
     deactivate () {
       if (!this.isDropdownOpened) return;
@@ -223,6 +231,21 @@ export default {
           block: 'center',
           inline: 'center'
         });
+      }
+    },
+    onInputBlur ({ relatedTarget }) {
+      this.isFocused = false;
+      if (!relatedTarget) {
+        this.closeDropdown();
+      }
+    },
+    setCursorIndexFromDropdownItem (e, index) {
+      this.cursor = index;
+    },
+    onBlurDropdownItem (e) {
+      const inputFocusedOnTab = e.relatedTarget && e.relatedTarget.tagName;
+      if (inputFocusedOnTab) {
+        this.cursor = -1;
       }
     }
   }
